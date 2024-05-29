@@ -1,0 +1,21 @@
+function v = maxwellBoltzmannBrzina(m, T, n)
+    % maxwellBoltzmannBrzina generiše n slučajnih brzina koje prate
+    % Maksvel-Bolcmanovu raspodelu za gas na temperaturi T sa masom čestice m.
+    %
+    % Ulazi:
+    %   m - masa čestice (kg)
+    %   T - temperatura (K)
+    %   n - broj slučajnih brzina koje treba generisati
+    %
+    % Izlaz:
+    %   v - niz generisanih brzina (m/s)
+
+    % Konstante
+    k = 1.380649e-23; % Bolcmanova konstanta u J/K
+
+    % Parametar skale za Maksvel-Bolcmanovu raspodelu
+    a = sqrt(k * T / m);
+
+    % Generisanje slučajnih brzina
+    v = a * sqrt(chi2rnd(3, n, 1));
+end
