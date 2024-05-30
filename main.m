@@ -5,10 +5,10 @@ testirajMaxwellBoltzmannRaspodelu();
 sirinaPosude = 1000; %[m]
 visinaPosude = 1000; %[m]
 
-poluprecnikDiska = 10;
+poluprecnikDiska = 50;
 brojDiskova = 20;
 
-bolzmannBrojPokusaja = 1000;
+bolzmannBrojPokusaja = 10000;
 
 newtonVremeSimulacije = 5000;
 
@@ -40,6 +40,16 @@ simulatorNewtonoveMehanike = SimulatorNewtonoveMehanike(posuda);
 
 disp('Rezultati Newtonove metode:');
 simulatorNewtonoveMehanike.simuliraj(poluprecnikDiska, newtonVremeSimulacije, true);
+
+disp('----------------------------------');
+
+%% Simulacija Markovljevog lanca
+simulatorMarkovljevogLanca = SimulatorMarkovljevogLanca(posuda);
+
+brojPokusaja = 10000;
+simulatorMarkovljevogLanca.simuliraj(poluprecnikDiska, brojPokusaja);
+
+disp('----------------------------------');
 
 %% Citanje i ispis rezultata
 rezultat = csvread("newtonResult.csv");

@@ -38,6 +38,21 @@ classdef Disk
             end
         end
         
+        % Vrace true ako disk sece barem jedan zadati disk, u suprotnom
+        % vraca false
+        function sece = seceBaremJedan(obj, diskovi)
+            sece = false;
+            
+            for i = 1:length(diskovi)
+                disk = diskovi(i);
+        
+                if (obj.sece(disk))
+                    sece = true;
+                    break;
+                end
+            end
+        end
+        
         % Vrace true ako se dva diska dodiruju, u suprotnom vraca false.
         % Dozvoljada da se rastojanje centara diskova nadje u opsegu zbira
         % poluprecnika i zbira poluprecnika i dozvoljene greske (ustupak se
