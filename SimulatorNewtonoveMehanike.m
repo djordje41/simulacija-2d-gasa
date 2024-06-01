@@ -8,8 +8,12 @@ classdef SimulatorNewtonoveMehanike
             obj.posuda = posuda;
         end
         
-        function [brojGenerisanihStanja, vremeSimulacije] = simuliraj(obj, poluprecnikDiska, vreme, prikaziDebug)
+        function [brojGenerisanihStanja, vremeSimulacije] = simuliraj(obj, poluprecnikDiska, masaDiska, vreme, maxBrojDogadjaja, prikaziDebug)
             if nargin < 4
+                maxBrojDogadjaja = -1;
+            end
+            
+            if nargin < 5
                 prikaziDebug = false;
             end
             
@@ -26,28 +30,19 @@ classdef SimulatorNewtonoveMehanike
             rezultantneKoordinate(2 : end, 1 : 2) = koordinate;
             
             for i = 1 : brojKoordinata
-                Vx = maxwellBoltzmannBrzina(1e-20, 300, 1);
-                Vy = maxwellBoltzmannBrzina(1e-20, 300, 1);
+                V = maxwellBoltzmannBrzina(masaDiska, 300, 1);
                 
-                if rand < 0.5
-                    Vx = -Vx;
-                end
-                
-                if rand < 0.5
-                    Vy = -Vy;
-                end
-                
-                diskovi(i) = Disk(poluprecnikDiska, 1e-20, Brzina(Vx, Vy), ...
+                diskovi(i) = Disk(poluprecnikDiska, masaDiska, Brzina(V(1), V(2)), ...
                     Koordinate(koordinate(i, 1), koordinate(i, 2)));
             end
             
             obj.posuda.diskovi = diskovi;
             
             brojRezultataIndex = 3;
-            
+            brojDogadjaja = 0;
             ukupnoVreme = vreme;
                  
-            while vreme > 0
+            while vreme > 0 && (maxBrojDogadjaja == -1 || brojDogadjaja < maxBrojDogadjaja)
                 if prikaziDebug
                     disp("Proteklo vreme: " + (ukupnoVreme - vreme));
                     disp("-");
@@ -62,7 +57,7 @@ classdef SimulatorNewtonoveMehanike
                 
                 if (isempty(vremena))
                     disp("Nema narednog sudara");
-                    return;
+                    break;
                 end
                 
                 vremeTranslacije = min(vremena);
@@ -70,12 +65,6 @@ classdef SimulatorNewtonoveMehanike
                 korigovanoVremeTranslacijeDisk = vremeTranslacije;
                 korigovanoVremeTranslacijeZid = vremeTranslacije;
                 
-                % Ovde vrsimo korekciju vremena translacije zbog toga sto
-                % matlab gresi u 15. decimali i moze se desiti da diskovu
-                % malo udju jedan u drugi, ovde malo korigujemo vreme
-                % translacije kako diskovi ne bi usli jedan u drugi, vec
-                % kako bi bili veoma blizu jedan drugog sto cemo tretirati
-                % kao sudar.
                 if (vremeTranslacije == vremeDiskDisk)
                     d1 = obj.posuda.diskovi(index1).transliraj(korigovanoVremeTranslacijeDisk);
                     d2 = obj.posuda.diskovi(index2).transliraj(korigovanoVremeTranslacijeDisk);
@@ -96,13 +85,12 @@ classdef SimulatorNewtonoveMehanike
                             korigovanoVremeTranslacijeDisk = korigovanoVremeTranslacijeDisk + pocetnoSmanjenje;
                         end
                         
-%                         pocetnoSmanjenje = pocetnoSmanjenje / 1.1;
+                        pocetnoSmanjenje = pocetnoSmanjenje / 1.1;
                         d1 = obj.posuda.diskovi(index1).transliraj(korigovanoVremeTranslacijeDisk);
                         d2 = obj.posuda.diskovi(index2).transliraj(korigovanoVremeTranslacijeDisk);
                     end
                 end
                 
-                % Ovde radimo nesto slicno samo za zid
                 if (vremeTranslacije == vremeDiskZid)
                     d1 = obj.posuda.diskovi(index).transliraj(korigovanoVremeTranslacijeZid);
                     pocetnoSmanjenje = 0.5e-13;
@@ -120,7 +108,7 @@ classdef SimulatorNewtonoveMehanike
                             korigovanoVremeTranslacijeZid = korigovanoVremeTranslacijeZid + pocetnoSmanjenje;
                         end
                         
-%                         pocetnoSmanjenje = pocetnoSmanjenje / 1.1;
+                        pocetnoSmanjenje = pocetnoSmanjenje / 1.1;
                         d1 = obj.posuda.diskovi(index).transliraj(korigovanoVremeTranslacijeZid);
                     end
                 end
@@ -152,19 +140,20 @@ classdef SimulatorNewtonoveMehanike
                 end
                 
                 vreme = vreme - vremeTranslacije;
+                brojDogadjaja = brojDogadjaja + 1;
                 
                 rezultantneKoordinate(2 : end, brojRezultataIndex : brojRezultataIndex + 1) = obj.posuda.getKoordinateCentaraDiskova();
                 rezultantneKoordinate(1, brojRezultataIndex : brojRezultataIndex + 1) = ukupnoVreme - vreme;
                 
                 brojRezultataIndex = brojRezultataIndex + 2;
             end
-            
+
             rezultantneKoordinate = rezultantneKoordinate(:, 1 : brojRezultataIndex - 1);
             
             vremeSimulacije = toc;
             brojGenerisanihStanja = floor(brojRezultataIndex / 2);
             
-            fprintf('Ukupno vreme simulacije: %.6f sekude\n', vremeSimulacije);
+            fprintf('Ukupno vreme simulacije: %.6f sekunde\n', vremeSimulacije);
             fprintf('Ukupan broj validnih pozicija diskova: %d\n', floor(brojRezultataIndex / 2));
              
             csvwrite('newtonResult.csv', rezultantneKoordinate);

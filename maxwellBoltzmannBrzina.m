@@ -17,5 +17,14 @@ function v = maxwellBoltzmannBrzina(m, T, n)
     a = sqrt(k * T / m);
 
     % Generisanje slučajnih brzina
-    v = a * sqrt(chi2rnd(3, n, 1));
+    intenziteti = a * sqrt(chi2rnd(3, n, 1));
+    
+    % Generisanje slučajnih smerova
+    theta = 2*pi*rand(n, 1);
+
+    % Konverzija u polarne koordinate (već u 2D)
+    vx = intenziteti .* cos(theta);
+    vy = intenziteti .* sin(theta);
+    
+    v = [vx vy];
 end
