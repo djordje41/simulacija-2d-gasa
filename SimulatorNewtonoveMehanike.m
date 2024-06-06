@@ -27,6 +27,10 @@ classdef SimulatorNewtonoveMehanike
             % prvi red (+1) ce nam posluziti za cuvanje trenutka u vremenu
             rezultantneKoordinate = zeros(brojKoordinata + 1, 10000);
             
+            rezultantanPritisak = zeros(2, 10000);
+            indexPritisak = 1;
+            vremePritisak = 0;
+            
             rezultantneKoordinate(2 : end, 1 : 2) = koordinate;
             
             for i = 1 : brojKoordinata
@@ -136,6 +140,15 @@ classdef SimulatorNewtonoveMehanike
                     if (prikaziDebug)
                         disp("Sudar diska sa zidom"); 
                     end
+                    % Ovde cuvamo podatke koje cemo koristiti za racunanje
+                    % pritiska gasa na zidove posude
+                    vremePritisak = vremePritisak + vremeTranslacije;
+                    impulsNaZid = obj.posuda.impulsNaZid(obj.posuda.diskovi(index));
+                    rezultantanPritisak(1, indexPritisak) = impulsNaZid;
+                    rezultantanPritisak(2, indexPritisak) = vremePritisak;
+                    indexPritisak = indexPritisak + 1;
+                    
+                    % Azuriramo brziju diska koji se sudario sa zidom
                     obj.posuda.diskovi(index) = obj.posuda.sudariSaZidom(obj.posuda.diskovi(index));
                 end
                 
@@ -147,8 +160,9 @@ classdef SimulatorNewtonoveMehanike
                 
                 brojRezultataIndex = brojRezultataIndex + 2;
             end
-
+            
             rezultantneKoordinate = rezultantneKoordinate(:, 1 : brojRezultataIndex - 1);
+            rezultantanPritisak = rezultantanPritisak(:, 1 : indexPritisak - 1);
             
             vremeSimulacije = toc;
             brojGenerisanihStanja = floor(brojRezultataIndex / 2);
@@ -157,6 +171,7 @@ classdef SimulatorNewtonoveMehanike
             fprintf('Ukupan broj validnih pozicija diskova: %d\n', floor(brojRezultataIndex / 2));
              
             csvwrite('newtonResult.csv', rezultantneKoordinate);
+            csvwrite('newtonResultPressure.csv', rezultantanPritisak);
         end
     end
 end

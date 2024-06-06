@@ -34,6 +34,11 @@ classdef Posuda
             obj.diskovi = diskovi;
         end
         
+        % Ova funkcija vraca obim posude
+        function obim = obim(obj)
+            obim =  2 * (obj.gornjiZid - obj.donjiZid + obj.desniZid - obj.leviZid);
+        end
+        
         % Puni posudu sa diskovima
         function diskovi = stvoriDiskovePoUzoru(obj, brojDiskova, disk)
             % Generisemo nasumicne koordinate centara diskova tako da se one
@@ -238,6 +243,38 @@ classdef Posuda
             
             if (vreme == inf)
                 vreme = -1; 
+            end
+        end
+        
+        function impuls = impulsNaZid(obj, disk)
+            diskDodiruje = obj.diskDodirujeZid(disk);
+            impuls = 0;
+            
+            if (~diskDodiruje) 
+%                 disp("Disk nije u kontaktu za zidom");
+                return;
+            end
+            
+            dodirujeGornji = ((disk.koordinate.y + disk.poluprecnik) >= obj.gornjiZid - obj.dozvoljenaGreska) && ...
+                ((disk.koordinate.y + disk.poluprecnik) <= obj.gornjiZid);
+            dodirujeDonji = ((disk.koordinate.y - disk.poluprecnik) <= obj.donjiZid + obj.dozvoljenaGreska) && ...
+                ((disk.koordinate.y - disk.poluprecnik) >= obj.donjiZid);
+            dodirujeDesni = ((disk.koordinate.x + disk.poluprecnik) >= obj.desniZid - obj.dozvoljenaGreska) && ...
+                ((disk.koordinate.x + disk.poluprecnik) <= obj.desniZid);
+            dodirujeLevi = ((disk.koordinate.x - disk.poluprecnik) <= obj.leviZid + obj.dozvoljenaGreska) && ...
+                ((disk.koordinate.x - disk.poluprecnik) >= obj.leviZid);
+            
+            if (dodirujeGornji && disk.brzina.Vy > 0)
+                impuls = impuls + abs(disk.brzina.Vy) * disk.masa;
+            end
+            if (dodirujeDonji && disk.brzina.Vy < 0)
+                impuls = impuls + abs(disk.brzina.Vy) * disk.masa;
+            end
+            if (dodirujeDesni && disk.brzina.Vx > 0)
+                impuls = impuls + abs(disk.brzina.Vx) * disk.masa;
+            end
+            if (dodirujeLevi && disk.brzina.Vx < 0)
+                impuls = impuls + abs(disk.brzina.Vx) * disk.masa;
             end
         end
     end

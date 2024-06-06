@@ -12,7 +12,7 @@ brojDiskova = 50;
 bolzmannBrojPokusaja = 1000;
 
 newtonVremeSimulacije = 5000;
-newtonBrojDogadjaja = 500;
+newtonBrojDogadjaja = 300;
 
 % Ako zelite da se preskoci statistika (traje mnogo) ovo ostaje true
 preskociStatistiku = true;

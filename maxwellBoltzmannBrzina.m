@@ -2,7 +2,7 @@ function v = maxwellBoltzmannBrzina(m, T, n)
     % maxwellBoltzmannBrzina generiše n slučajnih brzina koje prate
     % Maksvel-Bolcmanovu raspodelu za gas na temperaturi T sa masom čestice m.
     %
-    % Ulazi:
+    % Ulazni parametri:
     %   m - masa čestice (kg)
     %   T - temperatura (K)
     %   n - broj slučajnih brzina koje treba generisati
@@ -22,7 +22,7 @@ function v = maxwellBoltzmannBrzina(m, T, n)
     % Generisanje slučajnih smerova
     theta = 2*pi*rand(n, 1);
 
-    % Konverzija u polarne koordinate (već u 2D)
+    % Računanje x i y komponente brzine
     vx = intenziteti .* cos(theta);
     vy = intenziteti .* sin(theta);
     
