@@ -2,17 +2,18 @@
 testirajMaxwellBoltzmannRaspodelu();
 
 %% Inicijalizacija promenljivih
-sirinaPosude = 1000; %[m]
-visinaPosude = 1000; %[m]
+sirinaPosude = 0.1; %[m]
+visinaPosude = 0.1; %[m]
 
 m = 6.6464731e-27; % Masa atoma He u [kg]
-poluprecnikDiska = 1;
-brojDiskova = 50;
+poluprecnikDiska = 1.04e-13; % Poluprecnik atoma He u [m]
+n = 100; % Broj polja u redu(koloni) na koje delimo posudu
 
+brojDiskova = 100;
 bolzmannBrojPokusaja = 1000;
 
 newtonVremeSimulacije = 5000;
-newtonBrojDogadjaja = 300;
+newtonBrojDogadjaja = 1000;
 
 % Ako zelite da se preskoci statistika (traje mnogo) ovo ostaje true
 preskociStatistiku = true;
@@ -38,7 +39,7 @@ end
 disp('----------------------------------');
 
 %% Simulacija Newton-ove mehanike
-simulatorNewtonoveMehanike = SimulatorNewtonoveMehanike(posuda);
+simulatorNewtonoveMehanike = SimulatorNewtonoveMehanike(posuda, n);
 
 disp('Rezultati Newtonove metode:');
 simulatorNewtonoveMehanike.simuliraj(poluprecnikDiska, m, newtonVremeSimulacije, newtonBrojDogadjaja, false);

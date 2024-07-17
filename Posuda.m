@@ -34,6 +34,16 @@ classdef Posuda
             obj.diskovi = diskovi;
         end
         
+        % Vraca sirinu posude
+        function sirina = sirina(obj)
+            sirina = obj.desniZid - obj.leviZid;
+        end
+        
+        % Vraca sirinu posude
+        function visina = visina(obj)
+            visina = obj.gornjiZid- obj.donjiZid;
+        end
+        
         % Ova funkcija vraca obim posude
         function obim = obim(obj)
             obim =  2 * (obj.gornjiZid - obj.donjiZid + obj.desniZid - obj.leviZid);
@@ -221,29 +231,7 @@ classdef Posuda
         % Funkcija odredjuje za koliko ce se desiti prvi sudar dva diska
         % Ako funkcija vrati -1, znaci da nece biti sudara
         function [vreme, index1, index2] = vremeDoSledecegSudaraDvaDiska(obj)
-            vreme = inf;
-            
-            [~, brojDiskova] = size(obj.diskovi);
-            
-            index1 = -1;
-            index2 = -1;
-
-            for i = 1 : brojDiskova - 1
-                for j = i + 1 : brojDiskova
-                    vremeDoSudara = obj.diskovi(i).vremeDoSudara(obj.diskovi(j));
-                    
-                    if ((vremeDoSudara ~= -1) && (vremeDoSudara < vreme))
-                        vreme = vremeDoSudara;
-                        
-                        index1 = i;
-                        index2 = j;
-                    end
-                end
-            end
-            
-            if (vreme == inf)
-                vreme = -1; 
-            end
+            [vreme, index1, index2] = vremeDoSledecegSudaraDiskova(obj.diskovi);
         end
         
         function impuls = impulsNaZid(obj, disk)

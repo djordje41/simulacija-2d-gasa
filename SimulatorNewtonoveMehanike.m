@@ -1,11 +1,19 @@
 classdef SimulatorNewtonoveMehanike
     properties
         posuda
+        primarnaMreza
+        sekundarnaMreza
+        n
+        velicinaCelije
     end
     
     methods
-        function obj = SimulatorNewtonoveMehanike(posuda)
+        function obj = SimulatorNewtonoveMehanike(posuda, n)
             obj.posuda = posuda;
+            obj.n = n;
+            obj.primarnaMreza = cell(n, n);
+            obj.sekundarnaMreza = cell(n-1, n-1);
+            obj.velicinaCelije = posuda.sirina() / n;
         end
         
         function [brojGenerisanihStanja, vremeSimulacije] = simuliraj(obj, poluprecnikDiska, masaDiska, vreme, maxBrojDogadjaja, prikaziDebug)
@@ -38,6 +46,9 @@ classdef SimulatorNewtonoveMehanike
                 
                 diskovi(i) = Disk(poluprecnikDiska, masaDiska, Brzina(V(1), V(2)), ...
                     Koordinate(koordinate(i, 1), koordinate(i, 2)));
+                
+                % Dodeli disk mrežnim ćelijama
+                obj = obj.dodeliDiskMrezi(diskovi(i));
             end
             
             obj.posuda.diskovi = diskovi;
@@ -52,8 +63,8 @@ classdef SimulatorNewtonoveMehanike
                     disp("-");
                 end
                 
-                [vremeDiskZid, index] = obj.posuda.vremeDoSledecegSudaraSaZidom();
-                [vremeDiskDisk, index1, index2] = obj.posuda.vremeDoSledecegSudaraDvaDiska();
+                % Proveri sudare u mrežnim ćelijama
+                [vremeDiskZid, index, vremeDiskDisk, index1, index2] = obj.proveriSudare();
                 
                 vremena = [vremeDiskZid vremeDiskDisk];
                 
@@ -123,7 +134,7 @@ classdef SimulatorNewtonoveMehanike
                     obj.posuda.diskovi(i) = obj.posuda.diskovi(i).transliraj(vremeTranslacije);
                 end
                 
-                for i = Disk.diskoviKojiSeSeku(obj.posuda.diskovi)'
+                for i = Disk.diskoviKojiSeSeku(obj.posuda.diskovi)
                     disp(i.brzina)
                     disp(i.koordinate)
                 end
@@ -155,6 +166,9 @@ classdef SimulatorNewtonoveMehanike
                 vreme = vreme - vremeTranslacije;
                 brojDogadjaja = brojDogadjaja + 1;
                 
+                % Ponovno dodeljivanje diskova mrežnim ćelijama nakon pomeranja
+                obj = obj.azurirajDiskMreze();
+                
                 rezultantneKoordinate(2 : end, brojRezultataIndex : brojRezultataIndex + 1) = obj.posuda.getKoordinateCentaraDiskova();
                 rezultantneKoordinate(1, brojRezultataIndex : brojRezultataIndex + 1) = ukupnoVreme - vreme;
                 
@@ -172,6 +186,73 @@ classdef SimulatorNewtonoveMehanike
              
             csvwrite('newtonResult.csv', rezultantneKoordinate);
             csvwrite('newtonResultPressure.csv', rezultantanPritisak);
+        end
+        
+        function obj = dodeliDiskMrezi(obj, disk)
+            x = disk.koordinate.x;
+            y = disk.koordinate.y;
+            
+            % Odredjivanje primarne mrežne ćelije
+            mrezaXPrimarna = floor(x / obj.velicinaCelije) + 1;
+            mrezaYPrimarna = floor(y / obj.velicinaCelije) + 1;
+            
+            if mrezaXPrimarna > 0 && mrezaXPrimarna <= obj.n && mrezaYPrimarna > 0 && mrezaYPrimarna <= obj.n
+                obj.primarnaMreza{mrezaXPrimarna, mrezaYPrimarna}(end+1) = disk;
+            end
+            
+            % Odredjivanje sekundarne mrežne ćelije
+            mrezaXSekundarna = floor((x + obj.velicinaCelije / 2) / obj.velicinaCelije) + 1;
+            mrezaYSekundarna = floor((y + obj.velicinaCelije / 2) / obj.velicinaCelije) + 1;
+            
+            if mrezaXSekundarna > 0 && mrezaXSekundarna <= obj.n-1 && mrezaYSekundarna > 0 && mrezaYSekundarna <= obj.n-1
+                obj.sekundarnaMreza{mrezaXSekundarna, mrezaYSekundarna}(end+1) = disk;
+            end
+        end
+        
+        function obj = azurirajDiskMreze(obj)
+            % Brisanje trenutnih dodela mrežnih ćelija
+            obj.primarnaMreza = cell(obj.n, obj.n);
+            obj.sekundarnaMreza = cell(obj.n-1, obj.n-1);
+            
+            % Ponovno dodeljivanje svakog diska odgovarajućim mrežnim ćelijama
+            for i = 1:length(obj.posuda.diskovi)
+                obj = obj.dodeliDiskMrezi(obj.posuda.diskovi(i));
+            end
+        end
+        
+        function [vremeDiskZid, index, vremeDiskDisk, index1, index2] = proveriSudare(obj)
+            vremeDiskDisk = inf;
+            index1 = -1;
+            index2 = -1;
+            
+            [vremeDiskZid, index] = obj.posuda.vremeDoSledecegSudaraSaZidom();
+            
+            % Provera sudara unutar svake mrežne ćelije
+            for i = 1:obj.n
+                for j = 1:obj.n
+                    diskoviPrimarni = obj.primarnaMreza{i, j};
+                    if ~isempty(diskoviPrimarni)
+                        [vreme, idx1, idx2] = vremeDoSledecegSudaraDiskova(diskoviPrimarni);
+                        if vreme < vremeDiskDisk
+                            vremeDiskDisk = vreme;
+                            index1 = idx1;
+                            index2 = idx2;
+                        end
+                    end
+                    
+                    if i <= obj.n-1 && j <= obj.n-1
+                        diskoviSekundarni = obj.sekundarnaMreza{i, j};
+                        if ~isempty(diskoviSekundarni)
+                            [vreme, idx1, idx2] = vremeDoSledecegSudaraDiskova(diskoviSekundarni);
+                            if vreme < vremeDiskDisk
+                                vremeDiskDisk = vreme;
+                                index1 = idx1;
+                                index2 = idx2;
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
 end
