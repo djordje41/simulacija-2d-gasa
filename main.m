@@ -7,19 +7,19 @@ visinaPosude = 0.1; %[m]
 
 m = 6.6464731e-27; % Masa atoma He u [kg]
 poluprecnikDiska = 1.04e-13; % Poluprecnik atoma He u [m]
-n = 100; % Broj polja u redu(koloni) na koje delimo posudu
+n = 2; % Broj polja u redu(koloni) na koje delimo posudu
 
 brojDiskova = 100;
 bolzmannBrojPokusaja = 1000;
 
 newtonVremeSimulacije = 5000;
-newtonBrojDogadjaja = 1000;
+newtonBrojDogadjaja = 100;
 
 % Ako zelite da se preskoci statistika (traje mnogo) ovo ostaje true
 preskociStatistiku = true;
 
 %% Inicijalizacija posude
-posuda = Posuda(0, sirinaPosude, 0, visinaPosude, []);
+posuda = Posuda(0, sirinaPosude, 0, visinaPosude, [], n);
 
 %% Simulacija Bolcmanove statistike
 simulatorBoltzmannoveStatistike = SimulatorBoltzmannoveStatistike(posuda);
@@ -39,7 +39,7 @@ end
 disp('----------------------------------');
 
 %% Simulacija Newton-ove mehanike
-simulatorNewtonoveMehanike = SimulatorNewtonoveMehanike(posuda, n);
+simulatorNewtonoveMehanike = SimulatorNewtonoveMehanike(posuda);
 
 disp('Rezultati Newtonove metode:');
 simulatorNewtonoveMehanike.simuliraj(poluprecnikDiska, m, newtonVremeSimulacije, newtonBrojDogadjaja, false);

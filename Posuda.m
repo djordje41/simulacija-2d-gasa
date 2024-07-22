@@ -12,11 +12,16 @@ classdef Posuda
         diskovi
         
         dozvoljenaGreska = 1e-12;
+        
+        primarnaMreza;
+        sekundarnaMreza;
+        n;
+        velicinaCelije;
     end
     
     methods
         % Konstruktor
-        function obj = Posuda(leviZid, desniZid, donjiZid, gornjiZid, diskovi)
+        function obj = Posuda(leviZid, desniZid, donjiZid, gornjiZid, diskovi, n)
             mustBeLess = leviZid < desniZid;
             if ~mustBeLess
                 error('leviZid must be less than desniZid.');
@@ -32,6 +37,20 @@ classdef Posuda
             obj.gornjiZid = gornjiZid;
             obj.donjiZid = donjiZid;
             obj.diskovi = diskovi;
+            obj.n = 0;
+            
+            if nargin == 6
+                obj = obj.initMreza(n);
+            end
+        end
+        
+        function obj = initMreza(obj, n)
+            obj.n = n;
+            obj.primarnaMreza.diskovi = cell(n, n);
+            obj.primarnaMreza.indexi = cell(n, n);
+            obj.sekundarnaMreza.diskovi = cell(n-1, n-1);
+            obj.sekundarnaMreza.indexi = cell(n-1, n-1);
+            obj.velicinaCelije = obj.sirina() / n;
         end
         
         % Vraca sirinu posude
@@ -211,6 +230,46 @@ classdef Posuda
             
             index = -1;
             
+            if obj.n > 1
+                for i = 1 : obj.n - 1
+                    skupoviDiskova = {
+                        obj.primarnaMreza.diskovi{i, 1},
+                        obj.primarnaMreza.diskovi{1, i + 1},
+                        obj.primarnaMreza.diskovi{i + 1, obj.n},
+                        obj.primarnaMreza.diskovi{obj.n, i},
+                        obj.sekundarnaMreza.diskovi{i, 1},
+                        obj.sekundarnaMreza.diskovi{1, i},
+                        obj.sekundarnaMreza.diskovi{obj.n - 1, i},
+                        obj.sekundarnaMreza.diskovi{i, obj.n - 1},
+                    };
+                
+                    skupoviIndeksa = {
+                        obj.primarnaMreza.indexi{i, 1},
+                        obj.primarnaMreza.indexi{1, i + 1},
+                        obj.primarnaMreza.indexi{i + 1, obj.n},
+                        obj.primarnaMreza.indexi{obj.n, i},
+                        obj.sekundarnaMreza.indexi{i, 1},
+                        obj.sekundarnaMreza.indexi{1, i},
+                        obj.sekundarnaMreza.indexi{obj.n - 1, i},
+                        obj.sekundarnaMreza.indexi{i, obj.n - 1},
+                    };
+                
+                    for j = 1 : 8
+                        skupDiskova = skupoviDiskova{j};
+                        skupIndeksa = skupoviIndeksa{j};
+                        
+                        for k = 1 : size(skupDiskova)
+                            vremeDoSudara = obj.vremeDoSudaraSaZidom(skupDiskova(k));
+                            
+                            if ((vremeDoSudara ~= -1) && (vremeDoSudara < vreme))
+                                vreme = vremeDoSudara;
+                                index = skupIndeksa(k);
+                            end
+                        end
+                    end
+                end
+            end
+            
             [~, brojDiskova] = size(obj.diskovi);
             
             for i = 1 : brojDiskova
@@ -263,6 +322,82 @@ classdef Posuda
             end
             if (dodirujeLevi && disk.brzina.Vx < 0)
                 impuls = impuls + abs(disk.brzina.Vx) * disk.masa;
+            end
+        end
+        
+        function obj = dodeliDiskMrezi(obj, disk, index)
+            x = disk.koordinate.x;
+            y = disk.koordinate.y;
+            
+            % Odredjivanje primarne mrežne ćelije
+            mrezaXPrimarna = floor(x / obj.velicinaCelije) + 1;
+            mrezaYPrimarna = floor(y / obj.velicinaCelije) + 1;
+            
+            if mrezaXPrimarna > 0 && mrezaXPrimarna <= obj.n && mrezaYPrimarna > 0 && mrezaYPrimarna <= obj.n
+                obj.primarnaMreza.diskovi{mrezaXPrimarna, mrezaYPrimarna}(end+1) = disk;
+                obj.primarnaMreza.indexi{mrezaXPrimarna, mrezaYPrimarna}(end+1) = index;
+            end
+            
+            % Odredjivanje sekundarne mrežne ćelije
+            mrezaXSekundarna = floor((x + obj.velicinaCelije / 2) / obj.velicinaCelije) + 1;
+            mrezaYSekundarna = floor((y + obj.velicinaCelije / 2) / obj.velicinaCelije) + 1;
+            
+            if mrezaXSekundarna > 0 && mrezaXSekundarna <= obj.n-1 && mrezaYSekundarna > 0 && mrezaYSekundarna <= obj.n-1
+                obj.sekundarnaMreza.diskovi{mrezaXPrimarna, mrezaYPrimarna}(end+1) = disk;
+                obj.sekundarnaMreza.indexi{mrezaXPrimarna, mrezaYPrimarna}(end+1) = index;
+            end
+        end
+        
+        function obj = azurirajDiskMreze(obj)
+            % Brisanje trenutnih dodela mrežnih ćelija
+            obj = obj.initMreza(obj.n);
+            
+            % Ponovno dodeljivanje svakog diska odgovarajućim mrežnim ćelijama
+            for i = 1:length(obj.diskovi)
+                obj = obj.dodeliDiskMrezi(obj.diskovi(i), i);
+            end
+        end
+        
+        function [vremeDiskZid, index, vremeDiskDisk, index1, index2] = proveriSudare(obj)
+            vremeDiskDisk = inf;
+            index1 = -1;
+            index2 = -1;
+            
+            [vremeDiskZid, index] = obj.vremeDoSledecegSudaraSaZidom();
+            
+            % Ako je n = 1, to znaci da nemamo posudu izdeljenu na
+            % chunk-ove, vec je cela posuda i ne moramo koristiti mrezu
+            if obj.n == 1
+                [vremeDiskDisk, index1, index2] = vremeDoSledecegSudaraDiskova(obj.diskovi);
+                return;
+            end
+            
+            % Provera sudara unutar svake mrežne ćelije
+            for i = 1:obj.n
+                for j = 1:obj.n
+                    diskoviPrimarni = obj.primarnaMreza.diskovi{i, j};
+                    if ~isempty(diskoviPrimarni)
+                        [vreme, idx1, idx2] = vremeDoSledecegSudaraDiskova(diskoviPrimarni);
+                        if vreme < vremeDiskDisk && vreme ~= -1
+                            vremeDiskDisk = vreme;
+                            index1 = obj.primarnaMreza.indexi(idx1);
+                            index2 = obj.primarnaMreza.indexi(idx2);
+                        end
+                    end
+                    
+                    if i <= obj.n-1 && j <= obj.n-1
+                        diskoviSekundarni = obj.sekundarnaMreza.diskovi{i, j};
+                        if ~isempty(diskoviSekundarni)
+                            [vreme, idx1, idx2] = vremeDoSledecegSudaraDiskova(diskoviSekundarni);
+                        
+                            if vreme < vremeDiskDisk && vreme ~= -1
+                                vremeDiskDisk = vreme;
+                                index1 = obj.sekundarnaMreza.indexi(idx1);
+                                index2 = obj.sekundarnaMreza.indexi(idx2);
+                            end
+                        end
+                    end
+                end
             end
         end
     end

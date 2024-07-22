@@ -14,7 +14,7 @@ function testirajNewtonGrid(minN, korak, maxN, brojPonavljanja)
     bolzmannBrojPokusaja = 10;
 
     newtonVremeSimulacije = 5000;
-    newtonBrojDogadjaja = 300;
+    newtonBrojDogadjaja = 50;
 
     %% Inicijalizacija posude
     posuda = Posuda(0, sirinaPosude, 0, visinaPosude, []);
@@ -33,15 +33,20 @@ function testirajNewtonGrid(minN, korak, maxN, brojPonavljanja)
     disp('----------------------------------');
 
     %% Promena parametra n i vršenje simulacija
-    srednjiBrojGenerisanihStanjaPoVremenu = zeros(maxN - minN + 1, 1);
+    nValues = minN:korak:maxN;
+    srednjiBrojGenerisanihStanjaPoVremenu = zeros(length(nValues), 1);
 
-    for n = minN:korak:maxN
+    for idx = 1:length(nValues)
+        n = nValues(idx);
         ukupnoGenerisanihStanja = 0;
         ukupnoVreme = 0;
         
+        % Reinicijalizacija posude zbog n
+        posuda = Posuda(0, sirinaPosude, 0, visinaPosude, [], n);
+        
         for ponavljanje = 1:brojPonavljanja
             %% Simulacija Newton-ove mehanike
-            simulatorNewtonoveMehanike = SimulatorNewtonoveMehanike(posuda, n);
+            simulatorNewtonoveMehanike = SimulatorNewtonoveMehanike(posuda);
 
             [brojGenerisanihStanja, vremeSimulacije] = simulatorNewtonoveMehanike.simuliraj(poluprecnikDiska, m, newtonVremeSimulacije, newtonBrojDogadjaja, false);
             
@@ -49,12 +54,12 @@ function testirajNewtonGrid(minN, korak, maxN, brojPonavljanja)
             ukupnoVreme = ukupnoVreme + vremeSimulacije;
         end
         
-        srednjiBrojGenerisanihStanjaPoVremenu(n - minN + 1) = ukupnoGenerisanihStanja / ukupnoVreme;
+        srednjiBrojGenerisanihStanjaPoVremenu(idx) = ukupnoGenerisanihStanja / ukupnoVreme;
     end
 
     %% Plotovanje rezultata
     figure;
-    plot(minN:maxN, srednjiBrojGenerisanihStanjaPoVremenu, '-o');
+    plot(nValues, srednjiBrojGenerisanihStanjaPoVremenu, '-o');
     xlabel('Broj polja u mreži (n)');
     ylabel('Prosečan broj generisanih stanja po jedinici vremena');
     title('Zavisnost broja generisanih stanja po jedinici vremena od broja polja u mreži');

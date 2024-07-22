@@ -2,7 +2,7 @@
 % indekse oba diska u nizu.
 function [vreme, index1, index2] = vremeDoSledecegSudaraDiskova(diskovi)
     vreme = inf;
-            
+
     [~, brojDiskova] = size(diskovi);
 
     index1 = -1;
