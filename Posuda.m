@@ -191,29 +191,67 @@ classdef Posuda
         
         % Azurira vremena nadolazecih sudara diskova sa zidom i diskova sa
         % diskovima.
-        function obj = azurirajVremenaNadolazecihSudara(obj)
-            obj = obj.azurirajVremenaNadolazecihSudaraDiskZid();
-            obj = obj.azurirajVremenaNadolazecihSudaraDiskDisk();
+        function obj = azurirajVremenaNadolazecihSudara(obj, indices)
+            if nargin < 2
+                % Update all if no indices are provided
+                obj = azurirajVremenaNadolazecihSudaraDiskZid(obj);
+                obj = azurirajVremenaNadolazecihSudaraDiskDisk(obj);
+            else
+                % Update only the specified indices
+                obj = azurirajVremenaNadolazecihSudaraDiskZid(obj, indices);
+                obj = azurirajVremenaNadolazecihSudaraDiskDisk(obj, indices);
+            end
         end
         
         % Azurira vremena nadolazecih sudara diskova sa zidom.
-        function obj = azurirajVremenaNadolazecihSudaraDiskZid(obj)            
+        function obj = azurirajVremenaNadolazecihSudaraDiskZid(obj, indices)
             [~, brojDiskova] = size(obj.diskovi);
-            
-            for i = 1 : brojDiskova
-                obj.nadolazecaVremenaSudaraDiskZid(i) = obj.vremeDoSudaraSaZidom(obj.diskovi(i));
+
+            if nargin < 2
+                for i = 1:brojDiskova
+                    obj.nadolazecaVremenaSudaraDiskZid(i) = obj.vremeDoSudaraSaZidom(obj.diskovi(i));
+                end
+            else
+                for idx = 1:length(indices)
+                    i = indices(idx);
+                    obj.nadolazecaVremenaSudaraDiskZid(i) = obj.vremeDoSudaraSaZidom(obj.diskovi(i));
+                end
             end
         end
         
         % Azurira vremena nadolazecih sudara i diskova sa diskovima.
-        function obj = azurirajVremenaNadolazecihSudaraDiskDisk(obj)
+        function obj = azurirajVremenaNadolazecihSudaraDiskDisk(obj, indices)
             [~, brojDiskova] = size(obj.diskovi);
-            
-            for i = 1 : brojDiskova - 1
-                for j = i + 1 : brojDiskova
-                    obj.nadolazecaVremenaSudaraDiskDisk(i, j) = obj.diskovi(i).vremeDoSudara(obj.diskovi(j));
+
+            if nargin < 2
+                for i = 1:brojDiskova - 1
+                    for j = i + 1:brojDiskova
+                        obj.nadolazecaVremenaSudaraDiskDisk(i, j) = obj.diskovi(i).vremeDoSudara(obj.diskovi(j));
+                    end
+                end
+            else
+                for idx = 1:length(indices)
+                    i = indices(idx);
+                    for j = 1:brojDiskova
+                        if j > i
+                            obj.nadolazecaVremenaSudaraDiskDisk(i, j) = obj.diskovi(i).vremeDoSudara(obj.diskovi(j));
+                        elseif i > j
+                            obj.nadolazecaVremenaSudaraDiskDisk(j, i) = obj.diskovi(j).vremeDoSudara(obj.diskovi(i));
+                        end
+                    end
                 end
             end
+        end
+        
+        % Oduzima zadato vreme svim vremenima nadolazecih sudara, osim onima koji su -1.
+        function obj = smanjiVremenaNadolazecihSudara(obj, vreme)
+            % Update nadolazecaVremenaSudaraDiskZid
+            mask_zid = obj.nadolazecaVremenaSudaraDiskZid ~= -1;
+            obj.nadolazecaVremenaSudaraDiskZid(mask_zid) = obj.nadolazecaVremenaSudaraDiskZid(mask_zid) - vreme;
+
+            % Update nadolazecaVremenaSudaraDiskDisk
+            mask_disk = obj.nadolazecaVremenaSudaraDiskDisk ~= -1;
+            obj.nadolazecaVremenaSudaraDiskDisk(mask_disk) = obj.nadolazecaVremenaSudaraDiskDisk(mask_disk) - vreme;
         end
         
         % Funkcija izvrsava sudar diska sa zidom

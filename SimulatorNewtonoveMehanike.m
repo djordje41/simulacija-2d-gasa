@@ -120,6 +120,8 @@ classdef SimulatorNewtonoveMehanike
                 end
                 
                 vremeTranslacije = min(korigovanoVremeTranslacijeZid, korigovanoVremeTranslacijeDisk);
+                
+                obj.posuda = obj.posuda.smanjiVremenaNadolazecihSudara(vremeTranslacije);
 
                 for i = 1 : brojKoordinata
                     obj.posuda.diskovi(i) = obj.posuda.diskovi(i).transliraj(vremeTranslacije);
@@ -136,6 +138,8 @@ classdef SimulatorNewtonoveMehanike
                     end
                     [obj.posuda.diskovi(index1), obj.posuda.diskovi(index2)] = ... 
                         obj.posuda.diskovi(index1).izvrsiSudar3(obj.posuda.diskovi(index2));
+                    
+                    obj.posuda = obj.posuda.azurirajVremenaNadolazecihSudara([index1, index2]);
                 end
                 
                 if (vremeDiskZid ~= -1 && (vremeDiskZid <= vremeDiskDisk || vremeDiskDisk == -1))
@@ -152,9 +156,9 @@ classdef SimulatorNewtonoveMehanike
                     
                     % Azuriramo brziju diska koji se sudario sa zidom
                     obj.posuda.diskovi(index) = obj.posuda.sudariSaZidom(obj.posuda.diskovi(index));
+                    
+                    obj.posuda = obj.posuda.azurirajVremenaNadolazecihSudara(index);
                 end
-                
-                obj.posuda = obj.posuda.azurirajVremenaNadolazecihSudara();
                 
                 vreme = vreme - vremeTranslacije;
                 brojDogadjaja = brojDogadjaja + 1;
