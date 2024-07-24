@@ -7,7 +7,6 @@ visinaPosude = 0.1; %[m]
 
 m = 6.6464731e-27; % Masa atoma He u [kg]
 poluprecnikDiska = 1.04e-13; % Poluprecnik atoma He u [m]
-n = 2; % Broj polja u redu(koloni) na koje delimo posudu
 
 brojDiskova = 100;
 bolzmannBrojPokusaja = 1000;
@@ -19,7 +18,7 @@ newtonBrojDogadjaja = 100;
 preskociStatistiku = true;
 
 %% Inicijalizacija posude
-posuda = Posuda(0, sirinaPosude, 0, visinaPosude, [], n);
+posuda = Posuda(0, sirinaPosude, 0, visinaPosude, []);
 
 %% Simulacija Bolcmanove statistike
 simulatorBoltzmannoveStatistike = SimulatorBoltzmannoveStatistike(posuda);

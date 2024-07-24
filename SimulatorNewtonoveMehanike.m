@@ -38,11 +38,6 @@ classdef SimulatorNewtonoveMehanike
                 
                 diskovi(i) = Disk(poluprecnikDiska, masaDiska, Brzina(V(1), V(2)), ...
                     Koordinate(koordinate(i, 1), koordinate(i, 2)));
-                
-                % Dodeli disk mrežnim ćelijama ako je n > 1
-                if obj.posuda.n > 1
-                    obj.posuda = obj.posuda.dodeliDiskMrezi(diskovi(i), i); 
-                end
             end
             
             obj.posuda.diskovi = diskovi;
@@ -57,8 +52,8 @@ classdef SimulatorNewtonoveMehanike
                     disp("-");
                 end
                 
-                % Proveri sudare u mrežnim ćelijama
-                [vremeDiskZid, index, vremeDiskDisk, index1, index2] = obj.posuda.proveriSudare();
+                [vremeDiskZid, index] = obj.posuda.vremeDoSledecegSudaraSaZidom();
+                [vremeDiskDisk, index1, index2] = obj.posuda.vremeDoSledecegSudaraDvaDiska();
                 
                 vremena = [vremeDiskZid vremeDiskDisk];
                 
@@ -159,11 +154,6 @@ classdef SimulatorNewtonoveMehanike
                 
                 vreme = vreme - vremeTranslacije;
                 brojDogadjaja = brojDogadjaja + 1;
-                
-                % Ponovno dodeljivanje diskova mrežnim ćelijama nakon pomeranja
-                if obj.posuda.n > 1
-                    obj.posuda = obj.posuda.azurirajDiskMreze(); 
-                end
                 
                 rezultantneKoordinate(2 : end, brojRezultataIndex : brojRezultataIndex + 1) = obj.posuda.getKoordinateCentaraDiskova();
                 rezultantneKoordinate(1, brojRezultataIndex : brojRezultataIndex + 1) = ukupnoVreme - vreme;
