@@ -15,7 +15,7 @@ newtonVremeSimulacije = 5000;
 newtonBrojDogadjaja = 100;
 
 % Ako zelite da se preskoci statistika (traje mnogo) ovo ostaje true
-preskociStatistiku = true;
+preskociStatistiku = false;
 
 %% Inicijalizacija posude
 posuda = Posuda(0, sirinaPosude, 0, visinaPosude, []);

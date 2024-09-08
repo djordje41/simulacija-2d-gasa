@@ -3,15 +3,15 @@ function statistikaBrojDiskova(posuda)
 simulatorBoltzmann = SimulatorBoltzmannoveStatistike(posuda);
 simulatorNewton = SimulatorNewtonoveMehanike(posuda);
 
-bolzmannBrojPokusaja = 1000;
+bolzmannBrojPokusaja = 100;
 
 newtonVremeSimulacije = 2000;
-newtonBrojDogadjaja = 500;
+newtonBrojDogadjaja = 100;
 m = 6.6464731e-27; % Masa atoma He u [kg]
 
 brojIteracija = 5;
 opsegBrojaDiskova = 25 : 20 : 125;
-poluprecnikDiska = 5;
+poluprecnikDiska = 1.04e-13;
 
 % Inicijalizacija matrica za cuvanje rezultata
 vremeSimBoltzmann = zeros(length(opsegBrojaDiskova), 1);
@@ -28,7 +28,7 @@ for n = 1:length(opsegBrojaDiskova)
         [rezultat, brojGenerisanihStanjaB, vremeSimulacijeB] = simulatorBoltzmann.simuliraj(brojDiskova, poluprecnikDiska, bolzmannBrojPokusaja);
 
         if (rezultat == false)
-            disp("Nema rezultata za brojDiskova=" + brojDiskova + " i poluprecnikDiska=" + poluprecnikDiska + " i brojPokusaja=" + brojPokusaja + "\n");
+            disp("Nema rezultata za brojDiskova=" + brojDiskova + " i poluprecnikDiska=" + poluprecnikDiska + " i brojPokusaja=" + bolzmannBrojPokusaja + "\n");
             continue;
         end
         
