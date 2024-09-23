@@ -13,7 +13,7 @@ classdef SimulatorMarkovljevogLanca
             obj.posuda = posuda;
         end
         
-        function outputArg = simuliraj(obj, poluprecnikDiska, brojPokusaja)
+        function [brojValidnihStanja, protekloVreme] = simuliraj(obj, poluprecnikDiska, brojPokusaja)
             koordinate = csvread("coordinates.csv");
             
             % Pokreni merenje vremena
@@ -69,6 +69,8 @@ classdef SimulatorMarkovljevogLanca
             csvwrite('markovChainResult.csv', rezultantneKoordinate);
             
             protekloVreme = toc;
+            
+            brojValidnihStanja = brojValidnihStanja - 1;
             
             disp('Rezultati Markovljevog lanca: ');
             disp(['Broj pokusaja: ', num2str(brojPokusaja)]);

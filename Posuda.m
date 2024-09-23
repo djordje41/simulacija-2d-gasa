@@ -288,50 +288,63 @@ classdef Posuda
         
         % Funkcija odredjuje za koliko ce se desiti prvi sudar sa zidom
         % Ako funkcija vrati -1, znaci da nece biti sudara
-        function [vreme, index] = vremeDoSledecegSudaraSaZidom(obj)
-            [vreme, index] = min(obj.nadolazecaVremenaSudaraDiskZid(obj.nadolazecaVremenaSudaraDiskZid ~= -1));
-%             vreme = inf;
-%             
-%             index = -1;
-%             
-%             [~, brojDiskova] = size(obj.diskovi);
-%             
-%             for i = 1 : brojDiskova
-%                 vremeDoSudara = obj.vremeDoSudaraSaZidom(obj.diskovi(i));
-%                 
-%                 if ((vremeDoSudara ~= -1) && (vremeDoSudara < vreme))
-%                     vreme = vremeDoSudara;
-%                     index = i;
-%                 end
-%             end
-%             
-%             if (vreme == inf)
-%                 vreme = -1;
-%                 index = -1;
-%             end
+        function [vreme, index] = vremeDoSledecegSudaraSaZidom(obj, optimize)
+            if nargin < 2
+                optimize = true; 
+            end
+
+            if optimize
+                [vreme, index] = min(obj.nadolazecaVremenaSudaraDiskZid(obj.nadolazecaVremenaSudaraDiskZid ~= -1)); 
+            else
+                vreme = inf;
+
+                index = -1;
+
+                [~, brojDiskova] = size(obj.diskovi);
+
+                for i = 1 : brojDiskova
+                    vremeDoSudara = obj.vremeDoSudaraSaZidom(obj.diskovi(i));
+
+                    if ((vremeDoSudara ~= -1) && (vremeDoSudara < vreme))
+                        vreme = vremeDoSudara;
+                        index = i;
+                    end
+                end
+
+                if (vreme == inf)
+                    vreme = -1;
+                    index = -1;
+                end 
+            end
         end
         
         % Funkcija odredjuje za koliko ce se desiti prvi sudar dva diska
         % Ako funkcija vrati -1, znaci da nece biti sudara
-        function [vreme, index1, index2] = vremeDoSledecegSudaraDvaDiska(obj)
-            % Find the linear indices of the non -1 values
-            validIndices = find(obj.nadolazecaVremenaSudaraDiskDisk ~= -1);
-
-            % Check if there are any valid values
-            if isempty(validIndices)
-                % If no valid values, set vreme to -1 and indices to empty
-                vreme = -1;
-                index1 = [];
-                index2 = [];
-            else
-                % Find the minimum value among the valid values
-                [vreme, minIndex] = min(obj.nadolazecaVremenaSudaraDiskDisk(validIndices));
-
-                % Convert the linear index back to row and column indices
-                [index1, index2] = ind2sub(size(obj.nadolazecaVremenaSudaraDiskDisk), validIndices(minIndex));
+        function [vreme, index1, index2] = vremeDoSledecegSudaraDvaDiska(obj, optimize)
+            if nargin < 2
+                optimize = true; 
             end
-            
-%             [vreme, index1, index2] = vremeDoSledecegSudaraDiskova(obj.diskovi);
+
+            if optimize
+                % Find the linear indices of the non -1 values
+                validIndices = find(obj.nadolazecaVremenaSudaraDiskDisk ~= -1);
+
+                % Check if there are any valid values
+                if isempty(validIndices)
+                    % If no valid values, set vreme to -1 and indices to empty
+                    vreme = -1;
+                    index1 = [];
+                    index2 = [];
+                else
+                    % Find the minimum value among the valid values
+                    [vreme, minIndex] = min(obj.nadolazecaVremenaSudaraDiskDisk(validIndices));
+
+                    % Convert the linear index back to row and column indices
+                    [index1, index2] = ind2sub(size(obj.nadolazecaVremenaSudaraDiskDisk), validIndices(minIndex));
+                end
+            else
+                [vreme, index1, index2] = vremeDoSledecegSudaraDiskova(obj.diskovi);
+            end
         end
         
         function impuls = impulsNaZid(obj, disk)

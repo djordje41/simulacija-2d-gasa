@@ -11,7 +11,8 @@ n = 100000; % Broj slučajnih brzina koje treba generisati
 brzine = brzinaPoMaxwellRaspodeliAcceptReject(n, m, T);
 
 % Iscrtavanje histograma brzina
-figure(11);
+fig = figure(11); % Kreiranje figure sa brojem 11
+set(fig, 'Position', [200, 200, 800, 450]); % Postavljanje veličine figure
 histogram(brzine, 'Normalization', 'pdf');
 title('Histogram brzina po Maksvel-Bolcmanovoj raspodeli');
 xlabel('Brzina (m/s)');
