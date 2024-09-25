@@ -1,21 +1,21 @@
 %% Test Maxwell Boltzman raspodela
-testirajMaxwellBoltzmannRaspodelu();
+testirajMaxwellRaspodeluAcceptReject();
 
 %% Inicijalizacija promenljivih
 sirinaPosude = 0.1; %[m]
 visinaPosude = 0.1; %[m]
 
 m = 6.6464731e-27; % Masa atoma He u [kg]
-poluprecnikDiska = 1.04e-13; % Poluprecnik atoma He u [m]
+poluprecnikDiska = 3.1e-11; % Poluprecnik atoma He u [m]
 
 brojDiskova = 100;
-bolzmannBrojPokusaja = 1000;
+bolzmannBrojPokusaja = 100;
 
 newtonVremeSimulacije = 5000;
 newtonBrojDogadjaja = 100;
 
 % Ako zelite da se preskoci statistika (traje mnogo) ovo ostaje true
-preskociStatistiku = true;
+preskociStatistiku = false;
 
 %% Inicijalizacija posude
 posuda = Posuda(0, sirinaPosude, 0, visinaPosude, []);

@@ -8,7 +8,7 @@ classdef SimulatorNewtonoveMehanike
             obj.posuda = posuda;
         end
         
-        function [brojGenerisanihStanja, vremeSimulacije] = simuliraj(obj, poluprecnikDiska, masaDiska, vreme, maxBrojDogadjaja, prikaziDebug)
+        function [brojGenerisanihStanja, vremeSimulacije] = simuliraj(obj, poluprecnikDiska, masaDiska, vreme, maxBrojDogadjaja, prikaziDebug, optimize)
             if nargin < 4
                 maxBrojDogadjaja = -1;
             end
@@ -17,6 +17,10 @@ classdef SimulatorNewtonoveMehanike
                 prikaziDebug = false;
             end
             
+            if nargin < 6
+                optimize = true;
+            end
+
             koordinate = csvread("coordinates.csv");
             
             % Pokreni merenje vremena
@@ -42,6 +46,11 @@ classdef SimulatorNewtonoveMehanike
             
             obj.posuda.diskovi = diskovi;
             
+            if optimize
+                obj.posuda = obj.posuda.inicijalizujNadolazecaVremenaSudara();
+                obj.posuda = obj.posuda.azurirajVremenaNadolazecihSudara(); 
+            end
+            
             brojRezultataIndex = 3;
             brojDogadjaja = 0;
             ukupnoVreme = vreme;
@@ -52,8 +61,8 @@ classdef SimulatorNewtonoveMehanike
                     disp("-");
                 end
                 
-                [vremeDiskZid, index] = obj.posuda.vremeDoSledecegSudaraSaZidom();
-                [vremeDiskDisk, index1, index2] = obj.posuda.vremeDoSledecegSudaraDvaDiska();
+                [vremeDiskZid, index] = obj.posuda.vremeDoSledecegSudaraSaZidom(optimize);
+                [vremeDiskDisk, index1, index2] = obj.posuda.vremeDoSledecegSudaraDvaDiska(optimize);
                 
                 vremena = [vremeDiskZid vremeDiskDisk];
                 
@@ -118,6 +127,10 @@ classdef SimulatorNewtonoveMehanike
                 end
                 
                 vremeTranslacije = min(korigovanoVremeTranslacijeZid, korigovanoVremeTranslacijeDisk);
+                
+                if optimize
+                    obj.posuda = obj.posuda.smanjiVremenaNadolazecihSudara(vremeTranslacije); 
+                end
 
                 for i = 1 : brojKoordinata
                     obj.posuda.diskovi(i) = obj.posuda.diskovi(i).transliraj(vremeTranslacije);
@@ -134,6 +147,10 @@ classdef SimulatorNewtonoveMehanike
                     end
                     [obj.posuda.diskovi(index1), obj.posuda.diskovi(index2)] = ... 
                         obj.posuda.diskovi(index1).izvrsiSudar3(obj.posuda.diskovi(index2));
+                    
+                    if optimize
+                        obj.posuda = obj.posuda.azurirajVremenaNadolazecihSudara([index1, index2]); 
+                    end
                 end
                 
                 if (vremeDiskZid ~= -1 && (vremeDiskZid <= vremeDiskDisk || vremeDiskDisk == -1))
@@ -150,6 +167,10 @@ classdef SimulatorNewtonoveMehanike
                     
                     % Azuriramo brziju diska koji se sudario sa zidom
                     obj.posuda.diskovi(index) = obj.posuda.sudariSaZidom(obj.posuda.diskovi(index));
+                    
+                    if optimize
+                        obj.posuda = obj.posuda.azurirajVremenaNadolazecihSudara(index); 
+                    end
                 end
                 
                 vreme = vreme - vremeTranslacije;

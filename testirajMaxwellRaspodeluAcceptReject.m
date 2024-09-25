@@ -11,15 +11,16 @@ n = 100000; % Broj slučajnih brzina koje treba generisati
 brzine = brzinaPoMaxwellRaspodeliAcceptReject(n, m, T);
 
 % Iscrtavanje histograma brzina
-figure(11);
+fig = figure(11); % Kreiranje figure sa brojem 11
+set(fig, 'Position', [200, 200, 800, 450]); % Postavljanje veličine figure
 histogram(brzine, 'Normalization', 'pdf');
-title('Histogram brzina po Maksvel-Bolcmanovoj raspodeli');
+title('Histogram intenziteta brzina po Maksvelovoj raspodeli');
 xlabel('Brzina (m/s)');
 ylabel('Gustina verovatnoće');
 
 % Dodavanje teoretske Maksvel-Bolcmanove raspodeli za poređenje
 v = linspace(0, max(brzine), 1000);
-f_v = sqrt((m/(2*pi*k*T))^3) * 4*pi*v.^2 .* exp(-m*v.^2/(2*k*T));
+f_v = m * v / (k * T) .* exp(-m*v.^2/(2*k*T));
 hold on;
 plot(v, f_v, 'r-', 'LineWidth', 2);
 legend('Simulirani podaci', 'Teorijska kriva');

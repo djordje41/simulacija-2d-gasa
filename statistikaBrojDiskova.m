@@ -1,71 +1,117 @@
 function statistikaBrojDiskova(posuda)
-% Zavisnost srednjeg broja generisanih validnih stanja gasa od broja diskova i poluprecnika diska
-simulatorBoltzmann = SimulatorBoltzmannoveStatistike(posuda);
-simulatorNewton = SimulatorNewtonoveMehanike(posuda);
+    % Zavisnost srednjeg broja generisanih validnih stanja gasa od broja diskova i poluprecnika diska
+    simulatorBoltzmann = SimulatorBoltzmannoveStatistike(posuda);
+    simulatorNewton = SimulatorNewtonoveMehanike(posuda);
+    simulatorMarkov = SimulatorMarkovljevogLanca(posuda);
 
-bolzmannBrojPokusaja = 1000;
+    boltzmannBrojPokusaja = 100;
 
-newtonVremeSimulacije = 2000;
-newtonBrojDogadjaja = 500;
-m = 6.6464731e-27; % Masa atoma He u [kg]
+    newtonVremeSimulacije = 2000;
+    newtonBrojDogadjaja = 100;
+    m = 6.6464731e-27; % Masa atoma He u [kg]
 
-brojIteracija = 5;
-opsegBrojaDiskova = 25 : 20 : 125;
-poluprecnikDiska = 5;
+    markovBrojPokusaja = 100;
 
-% Inicijalizacija matrica za cuvanje rezultata
-vremeSimBoltzmann = zeros(length(opsegBrojaDiskova), 1);
-brojStanjaBoltzmann = zeros(length(opsegBrojaDiskova), 1);
+    brojIteracija = 10;
+    opsegBrojaDiskova = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]; % Adjust as needed
+    poluprecnikDiska = 3.1e-11; % Poluprecnik atoma helijuma
 
-vremeSimNewton = zeros(length(opsegBrojaDiskova), 1);
-brojStanjaNewton = zeros(length(opsegBrojaDiskova), 1);
+    % Inicijalizacija matrica za cuvanje rezultata
+    vremeSimBoltzmann = zeros(length(opsegBrojaDiskova), 1);
+    brojStanjaBoltzmann = zeros(length(opsegBrojaDiskova), 1);
 
-% Iteracija kroz opseg broja diskova
-for n = 1:length(opsegBrojaDiskova)
-    brojDiskova = opsegBrojaDiskova(n);
-    for i = 1 : brojIteracija
-        % Najpre simuliramo Boltzmanna kako bi nam generisao validnu konfiguraciju za Newtona
-        [rezultat, brojGenerisanihStanjaB, vremeSimulacijeB] = simulatorBoltzmann.simuliraj(brojDiskova, poluprecnikDiska, bolzmannBrojPokusaja);
+    vremeSimNewtonOpt = zeros(length(opsegBrojaDiskova), 1);
+    brojStanjaNewtonOpt = zeros(length(opsegBrojaDiskova), 1);
 
-        if (rezultat == false)
-            disp("Nema rezultata za brojDiskova=" + brojDiskova + " i poluprecnikDiska=" + poluprecnikDiska + " i brojPokusaja=" + brojPokusaja + "\n");
-            continue;
+    vremeSimNewtonNoOpt = zeros(length(opsegBrojaDiskova), 1);
+    brojStanjaNewtonNoOpt = zeros(length(opsegBrojaDiskova), 1);
+
+    vremeSimMarkov = zeros(length(opsegBrojaDiskova), 1);
+    brojStanjaMarkov = zeros(length(opsegBrojaDiskova), 1);
+
+    % Iteracija kroz opseg broja diskova
+    for n = 1:length(opsegBrojaDiskova)
+        brojDiskova = opsegBrojaDiskova(n);
+        for i = 1 : brojIteracija
+            % --- Boltzmann Simulator ---
+            [rezultat, brojGenerisanihStanjaB, vremeSimulacijeB] = ...
+                simulatorBoltzmann.simuliraj(brojDiskova, poluprecnikDiska, boltzmannBrojPokusaja);
+
+            if (rezultat == false)
+                disp("Nema rezultata za brojDiskova=" + brojDiskova + ...
+                    " i poluprecnikDiska=" + poluprecnikDiska + ...
+                    " i brojPokusaja=" + boltzmannBrojPokusaja);
+                continue;
+            end
+
+            disp("Boltzmann simulator zavrsen za brojDiskova=" + brojDiskova);
+
+            vremeSimBoltzmann(n) = vremeSimBoltzmann(n) + vremeSimulacijeB;
+            brojStanjaBoltzmann(n) = brojStanjaBoltzmann(n) + brojGenerisanihStanjaB;
+
+            % --- Newton Simulator with Optimization ---
+            [brojGenerisanihStanjaOpt, vremeSimulacijeOpt] = ...
+                simulatorNewton.simuliraj(poluprecnikDiska, m, newtonVremeSimulacije, newtonBrojDogadjaja, false, true); % true for optimization
+
+            disp("Newton simulator (opt) zavrsen za brojDiskova=" + brojDiskova);
+
+            vremeSimNewtonOpt(n) = vremeSimNewtonOpt(n) + vremeSimulacijeOpt;
+            brojStanjaNewtonOpt(n) = brojStanjaNewtonOpt(n) + brojGenerisanihStanjaOpt;
+
+            % --- Newton Simulator without Optimization ---
+            [brojGenerisanihStanjaNoOpt, vremeSimulacijeNoOpt] = ...
+                simulatorNewton.simuliraj(poluprecnikDiska, m, newtonVremeSimulacije, newtonBrojDogadjaja, false, false); % false for no optimization
+
+            disp("Newton simulator (no opt) zavrsen za brojDiskova=" + brojDiskova);
+
+            vremeSimNewtonNoOpt(n) = vremeSimNewtonNoOpt(n) + vremeSimulacijeNoOpt;
+            brojStanjaNewtonNoOpt(n) = brojStanjaNewtonNoOpt(n) + brojGenerisanihStanjaNoOpt;
+
+            % --- Markov Chain Simulator ---
+            [brojGenerisanihStanjaM, vremeSimulacijeM] = ...
+                simulatorMarkov.simuliraj(poluprecnikDiska, markovBrojPokusaja);
+
+            disp("Markovljev lanac simulator zavrsen za brojDiskova=" + brojDiskova);
+
+            vremeSimMarkov(n) = vremeSimMarkov(n) + vremeSimulacijeM;
+            brojStanjaMarkov(n) = brojStanjaMarkov(n) + brojGenerisanihStanjaM;
         end
-        
-        disp("-------------------------------------------");
-
-        vremeSimBoltzmann(n) = vremeSimBoltzmann(n) + vremeSimulacijeB;
-        brojStanjaBoltzmann(n) = brojStanjaBoltzmann(n) + brojGenerisanihStanjaB;
-
-        % Simuliramo sada Newtona
-        [brojGenerisanihStanja, vremeSimulacije] = simulatorNewton.simuliraj(poluprecnikDiska, m, newtonVremeSimulacije, newtonBrojDogadjaja, false);
-
-        disp("-------------------------------------------");
-        
-        vremeSimNewton(n) = vremeSimNewton(n) + vremeSimulacije;
-        brojStanjaNewton(n) = brojStanjaNewton(n) + brojGenerisanihStanja;
     end
-end
 
-% Izracunavanje prosecnog broja generisanih stanja po vremenu
-prosekStanjaPoVremenuBoltzmann = brojStanjaBoltzmann ./ vremeSimBoltzmann;
-prosekStanjaPoVremenuNewton = brojStanjaNewton ./ vremeSimNewton;
+    % Izracunavanje prosecnog broja generisanih stanja po vremenu
+    prosekStanjaPoVremenuBoltzmann = brojStanjaBoltzmann ./ vremeSimBoltzmann;
+    prosekStanjaPoVremenuNewtonOpt = brojStanjaNewtonOpt ./ vremeSimNewtonOpt;
+    prosekStanjaPoVremenuNewtonNoOpt = brojStanjaNewtonNoOpt ./ vremeSimNewtonNoOpt;
+    prosekStanjaPoVremenuMarkov = brojStanjaMarkov ./ vremeSimMarkov;
 
-% Save results to new CSV files
-csvwrite('prosekStanjaPoVremenuBoltzmann_new.csv', prosekStanjaPoVremenuBoltzmann);
-csvwrite('prosekStanjaPoVremenuNewton_new.csv', prosekStanjaPoVremenuNewton);
+    % Save results to CSV files
+    csvwrite('prosekStanjaPoVremenuBoltzmann.csv', prosekStanjaPoVremenuBoltzmann);
+    csvwrite('prosekStanjaPoVremenuNewtonOpt.csv', prosekStanjaPoVremenuNewtonOpt);
+    csvwrite('prosekStanjaPoVremenuNewtonNoOpt.csv', prosekStanjaPoVremenuNewtonNoOpt);
+    csvwrite('prosekStanjaPoVremenuMarkov.csv', prosekStanjaPoVremenuMarkov);
 
-% Plotovanje rezultata
-figure(101);
-hold on;
-plot(opsegBrojaDiskova, prosekStanjaPoVremenuBoltzmann, '-o', 'DisplayName', 'Boltzmann');
-plot(opsegBrojaDiskova, prosekStanjaPoVremenuNewton, '-x', 'DisplayName', 'Newton');
-xlabel('Broj diskova');
-ylabel('Prosecni broj generisanih validnih stanja po vremenu');
-title('Zavisnost prosečnog broja generisanih validnih stanja od broja diskova');
-legend show;
-grid on;
-hold off;
+    % Optionally, save all raw data for further analysis
+    save('simulacija_podaci.mat', 'opsegBrojaDiskova', ...
+        'vremeSimBoltzmann', 'brojStanjaBoltzmann', ...
+        'vremeSimNewtonOpt', 'brojStanjaNewtonOpt', ...
+        'vremeSimNewtonNoOpt', 'brojStanjaNewtonNoOpt', ...
+        'vremeSimMarkov', 'brojStanjaMarkov');
+
+    % Plotovanje rezultata
+    figure('Position', [200, 200, 800, 450]);
+    hold on;
+
+    plot(opsegBrojaDiskova, prosekStanjaPoVremenuBoltzmann, '-o', 'DisplayName', 'Direct sampling', 'Marker', 'o');
+    plot(opsegBrojaDiskova, prosekStanjaPoVremenuNewtonOpt, '-s', 'DisplayName', 'Newton optimized', 'Marker', 's');
+    plot(opsegBrojaDiskova, prosekStanjaPoVremenuNewtonNoOpt, '-^', 'DisplayName', 'Newton unoptimized', 'Marker', '^');
+    plot(opsegBrojaDiskova, prosekStanjaPoVremenuMarkov, '-d', 'DisplayName', 'Markov chain', 'Marker', 'd');
+
+    xlabel('Broj diskova');
+    ylabel('Prosečan broj generisanih validnih stanja po vremenu');
+    title('Zavisnost prosečnog broja generisanih validnih stanja od broja diskova');
+    legend show;
+    grid on;
+    hold off;
 end
 
 % Ovi podaci ispod predstavljaju rezultate samo Boltzmannove statistike

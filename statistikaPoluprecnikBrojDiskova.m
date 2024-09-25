@@ -3,10 +3,15 @@ function statistikaPoluprecnikBrojDiskova(posuda)
 simulatorBoltzmannoveStatistike = SimulatorBoltzmannoveStatistike(posuda);
 simulatorNewtonoveMehanike = SimulatorNewtonoveMehanike(posuda);
 
+bolzmannBrojPokusaja = 100;
+newtonVremeSimulacije = 5000;
+newtonBrojDogadjaja = 100;
+m = 6.6464731e-27; % Masa atoma He u [kg]
+
 brojIteracija = 10;
 
 opsegBrojaDiskova = 1 : 3 : 30;
-opsegPoluprecnika = 3 : 3 : 16;
+opsegPoluprecnika = (3 : 3 : 16) .* 10^-3;
 
 % Inicijalizacija matrica za cuvanje rezultata
 ukupnoVremeSimulacijeBoltzmann = zeros(length(opsegBrojaDiskova), length(opsegPoluprecnika));
@@ -36,7 +41,7 @@ for n = 1:length(opsegBrojaDiskova)
                 ukupanBrojGenerisanihStanjaBoltzmann(n, r) + brojGenerisanihStanjaB;
 
             % Simuliramo sada Newtona
-            [brojGenerisanihStanja, vremeSimulacije] = simulatorNewtonoveMehanike.simuliraj(poluprecnikDiska, newtonVremeSimulacije, true);
+            [brojGenerisanihStanja, vremeSimulacije] = simulatorNewtonoveMehanike.simuliraj(poluprecnikDiska, m, newtonVremeSimulacije, newtonBrojDogadjaja, false);
 
             ukupnoVremeSimulacijeNewton(n, r) = ...
                 ukupnoVremeSimulacijeNewton(n, r) + vremeSimulacije;
