@@ -8,7 +8,7 @@ classdef SimulatorBoltzmannoveStatistike
             obj.posuda = posuda;
         end
         
-        function prvaValidnaKonfiguracija = simuliraj(obj, brojDiskova, poluprecnik, brojPokusaja)
+        function [prvaValidnaKonfiguracija, brojValidnihStanja, vremeSimulacije] = simuliraj(obj, brojDiskova, poluprecnik, brojPokusaja)
             tic;
             
             prvaValidnaKonfiguracija = false;
@@ -37,6 +37,9 @@ classdef SimulatorBoltzmannoveStatistike
             csvwrite('boltzmanResult.csv', rezultantneKoordinate);
             
             protekloVreme = toc;
+            
+            brojValidnihStanja = floor(rezultatIndex / 2);
+            vremeSimulacije = protekloVreme;
             
             disp('Rezultati Boltzmanove metode: ');
             disp(['Broj pokusaja: ', num2str(brojPokusaja)]);

@@ -1,13 +1,21 @@
+%% Test Maxwell Boltzman raspodela
+testirajMaxwellRaspodeluAcceptReject();
+
 %% Inicijalizacija promenljivih
-sirinaPosude = 1000; %[m]
-visinaPosude = 1000; %[m]
+sirinaPosude = 0.1; %[m]
+visinaPosude = 0.1; %[m]
 
-poluprecnikDiska = 20;
-brojDiskova = 20;
+m = 6.6464731e-27; % Masa atoma He u [kg]
+poluprecnikDiska = 3.1e-11; % Poluprecnik atoma He u [m]
 
-bolzmannBrojPokusaja = 1000;
+brojDiskova = 100;
+bolzmannBrojPokusaja = 100;
 
-newtonVremeSimulacije = 2000;
+newtonVremeSimulacije = 5000;
+newtonBrojDogadjaja = 100;
+
+% Ako zelite da se preskoci statistika (traje mnogo) ovo ostaje true
+preskociStatistiku = false;
 
 %% Inicijalizacija posude
 posuda = Posuda(0, sirinaPosude, 0, visinaPosude, []);
@@ -15,7 +23,7 @@ posuda = Posuda(0, sirinaPosude, 0, visinaPosude, []);
 %% Simulacija Bolcmanove statistike
 simulatorBoltzmannoveStatistike = SimulatorBoltzmannoveStatistike(posuda);
 
-rezultat = simulatorBoltzmannoveStatistike.simuliraj(brojDiskova, poluprecnikDiska, bolzmannBrojPokusaja);
+[rezultat, ~, ~] = simulatorBoltzmannoveStatistike.simuliraj(brojDiskova, poluprecnikDiska, bolzmannBrojPokusaja);
 
 if (rezultat == false)
     disp("Bolzmann-ov metod nije uspeo generisati niti jedan validan " + ...
@@ -33,7 +41,17 @@ disp('----------------------------------');
 simulatorNewtonoveMehanike = SimulatorNewtonoveMehanike(posuda);
 
 disp('Rezultati Newtonove metode:');
-simulatorNewtonoveMehanike.simuliraj(poluprecnikDiska, newtonVremeSimulacije);
+simulatorNewtonoveMehanike.simuliraj(poluprecnikDiska, m, newtonVremeSimulacije, newtonBrojDogadjaja, false);
+
+disp('----------------------------------');
+
+%% Simulacija Markovljevog lanca
+simulatorMarkovljevogLanca = SimulatorMarkovljevogLanca(posuda);
+
+brojPokusaja = 10000;
+simulatorMarkovljevogLanca.simuliraj(poluprecnikDiska, brojPokusaja);
+
+disp('----------------------------------');
 
 %% Citanje i ispis rezultata
 rezultat = csvread("newtonResult.csv");
@@ -67,6 +85,15 @@ xlabel('Vreme [s]');
 ylabel('Y koordinate centara diskova');
 title('Grafik prikaza Y koordinata svih diskova u vremenu trajanja simulacije.');
 set(gcf, 'Position', desniGrafik);
+
+%% Statistika
+
+if (~preskociStatistiku)
+
+statistikaPoluprecnikBrojDiskova(posuda);
+statistikaBrojaDiskova(posuda);
+
+end
 
 %% Crtanje diskova
 return;

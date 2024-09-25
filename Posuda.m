@@ -12,6 +12,9 @@ classdef Posuda
         diskovi
         
         dozvoljenaGreska = 1e-12;
+        
+        nadolazecaVremenaSudaraDiskZid;
+        nadolazecaVremenaSudaraDiskDisk;
     end
     
     methods
@@ -32,6 +35,35 @@ classdef Posuda
             obj.gornjiZid = gornjiZid;
             obj.donjiZid = donjiZid;
             obj.diskovi = diskovi;
+            
+            obj = obj.inicijalizujNadolazecaVremenaSudara();
+        end
+        
+        % Definise niz vremena nadolazecih sudara diskova sa zidovima
+        % posuda sa nulama, kao i matricu vremena nadolazecih sudara
+        % diskova sa diskovima takodje sa nulama.
+        function obj = inicijalizujNadolazecaVremenaSudara(obj)
+            [~, brojDiskova] = size(obj.diskovi);
+            
+            if brojDiskova
+                obj.nadolazecaVremenaSudaraDiskZid = zeros(1, brojDiskova) - 1;
+                obj.nadolazecaVremenaSudaraDiskDisk = zeros(brojDiskova, brojDiskova) - 1;
+            end
+        end
+        
+        % Vraca sirinu posude
+        function sirina = sirina(obj)
+            sirina = obj.desniZid - obj.leviZid;
+        end
+        
+        % Vraca sirinu posude
+        function visina = visina(obj)
+            visina = obj.gornjiZid- obj.donjiZid;
+        end
+        
+        % Ova funkcija vraca obim posude
+        function obim = obim(obj)
+            obim =  2 * (obj.gornjiZid - obj.donjiZid + obj.desniZid - obj.leviZid);
         end
         
         % Puni posudu sa diskovima
@@ -157,6 +189,71 @@ classdef Posuda
             vreme = min(vremeDoSudara);
         end
         
+        % Azurira vremena nadolazecih sudara diskova sa zidom i diskova sa
+        % diskovima.
+        function obj = azurirajVremenaNadolazecihSudara(obj, indices)
+            if nargin < 2
+                % Update all if no indices are provided
+                obj = azurirajVremenaNadolazecihSudaraDiskZid(obj);
+                obj = azurirajVremenaNadolazecihSudaraDiskDisk(obj);
+            else
+                % Update only the specified indices
+                obj = azurirajVremenaNadolazecihSudaraDiskZid(obj, indices);
+                obj = azurirajVremenaNadolazecihSudaraDiskDisk(obj, indices);
+            end
+        end
+        
+        % Azurira vremena nadolazecih sudara diskova sa zidom.
+        function obj = azurirajVremenaNadolazecihSudaraDiskZid(obj, indices)
+            [~, brojDiskova] = size(obj.diskovi);
+
+            if nargin < 2
+                for i = 1:brojDiskova
+                    obj.nadolazecaVremenaSudaraDiskZid(i) = obj.vremeDoSudaraSaZidom(obj.diskovi(i));
+                end
+            else
+                for idx = 1:length(indices)
+                    i = indices(idx);
+                    obj.nadolazecaVremenaSudaraDiskZid(i) = obj.vremeDoSudaraSaZidom(obj.diskovi(i));
+                end
+            end
+        end
+        
+        % Azurira vremena nadolazecih sudara i diskova sa diskovima.
+        function obj = azurirajVremenaNadolazecihSudaraDiskDisk(obj, indices)
+            [~, brojDiskova] = size(obj.diskovi);
+
+            if nargin < 2
+                for i = 1:brojDiskova - 1
+                    for j = i + 1:brojDiskova
+                        obj.nadolazecaVremenaSudaraDiskDisk(i, j) = obj.diskovi(i).vremeDoSudara(obj.diskovi(j));
+                    end
+                end
+            else
+                for idx = 1:length(indices)
+                    i = indices(idx);
+                    for j = 1:brojDiskova
+                        if j > i
+                            obj.nadolazecaVremenaSudaraDiskDisk(i, j) = obj.diskovi(i).vremeDoSudara(obj.diskovi(j));
+                        elseif i > j
+                            obj.nadolazecaVremenaSudaraDiskDisk(j, i) = obj.diskovi(j).vremeDoSudara(obj.diskovi(i));
+                        end
+                    end
+                end
+            end
+        end
+        
+        % Oduzima zadato vreme svim vremenima nadolazecih sudara, osim onima koji su -1.
+        function obj = smanjiVremenaNadolazecihSudara(obj, vreme)
+            % Update nadolazecaVremenaSudaraDiskZid
+            mask_zid = obj.nadolazecaVremenaSudaraDiskZid ~= -1;
+            obj.nadolazecaVremenaSudaraDiskZid(mask_zid) = obj.nadolazecaVremenaSudaraDiskZid(mask_zid) - vreme;
+
+            % Update nadolazecaVremenaSudaraDiskDisk
+            mask_disk = obj.nadolazecaVremenaSudaraDiskDisk ~= -1;
+            obj.nadolazecaVremenaSudaraDiskDisk(mask_disk) = obj.nadolazecaVremenaSudaraDiskDisk(mask_disk) - vreme;
+        end
+        
         % Funkcija izvrsava sudar diska sa zidom
         function disk = sudariSaZidom(obj, disk)
             diskDodiruje = obj.diskDodirujeZid(disk);
@@ -191,53 +288,94 @@ classdef Posuda
         
         % Funkcija odredjuje za koliko ce se desiti prvi sudar sa zidom
         % Ako funkcija vrati -1, znaci da nece biti sudara
-        function [vreme, index] = vremeDoSledecegSudaraSaZidom(obj)
-            vreme = inf;
-            
-            index = -1;
-            
-            [~, brojDiskova] = size(obj.diskovi);
-            
-            for i = 1 : brojDiskova
-                vremeDoSudara = obj.vremeDoSudaraSaZidom(obj.diskovi(i));
-                
-                if ((vremeDoSudara ~= -1) && (vremeDoSudara < vreme))
-                    vreme = vremeDoSudara;
-                    index = i;
-                end
+        function [vreme, index] = vremeDoSledecegSudaraSaZidom(obj, optimize)
+            if nargin < 2
+                optimize = true; 
             end
-            
-            if (vreme == inf)
-                vreme = -1;
+
+            if optimize
+                [vreme, index] = min(obj.nadolazecaVremenaSudaraDiskZid(obj.nadolazecaVremenaSudaraDiskZid ~= -1)); 
+            else
+                vreme = inf;
+
                 index = -1;
+
+                [~, brojDiskova] = size(obj.diskovi);
+
+                for i = 1 : brojDiskova
+                    vremeDoSudara = obj.vremeDoSudaraSaZidom(obj.diskovi(i));
+
+                    if ((vremeDoSudara ~= -1) && (vremeDoSudara < vreme))
+                        vreme = vremeDoSudara;
+                        index = i;
+                    end
+                end
+
+                if (vreme == inf)
+                    vreme = -1;
+                    index = -1;
+                end 
             end
         end
         
         % Funkcija odredjuje za koliko ce se desiti prvi sudar dva diska
         % Ako funkcija vrati -1, znaci da nece biti sudara
-        function [vreme, index1, index2] = vremeDoSledecegSudaraDvaDiska(obj)
-            vreme = inf;
-            
-            [~, brojDiskova] = size(obj.diskovi);
-            
-            index1 = -1;
-            index2 = -1;
+        function [vreme, index1, index2] = vremeDoSledecegSudaraDvaDiska(obj, optimize)
+            if nargin < 2
+                optimize = true; 
+            end
 
-            for i = 1 : brojDiskova - 1
-                for j = i + 1 : brojDiskova
-                    vremeDoSudara = obj.diskovi(i).vremeDoSudara(obj.diskovi(j));
-                    
-                    if ((vremeDoSudara ~= -1) && (vremeDoSudara < vreme))
-                        vreme = vremeDoSudara;
-                        
-                        index1 = i;
-                        index2 = j;
-                    end
+            if optimize
+                % Find the linear indices of the non -1 values
+                validIndices = find(obj.nadolazecaVremenaSudaraDiskDisk ~= -1);
+
+                % Check if there are any valid values
+                if isempty(validIndices)
+                    % If no valid values, set vreme to -1 and indices to empty
+                    vreme = -1;
+                    index1 = [];
+                    index2 = [];
+                else
+                    % Find the minimum value among the valid values
+                    [vreme, minIndex] = min(obj.nadolazecaVremenaSudaraDiskDisk(validIndices));
+
+                    % Convert the linear index back to row and column indices
+                    [index1, index2] = ind2sub(size(obj.nadolazecaVremenaSudaraDiskDisk), validIndices(minIndex));
                 end
+            else
+                [vreme, index1, index2] = vremeDoSledecegSudaraDiskova(obj.diskovi);
+            end
+        end
+        
+        function impuls = impulsNaZid(obj, disk)
+            diskDodiruje = obj.diskDodirujeZid(disk);
+            impuls = 0;
+            
+            if (~diskDodiruje) 
+%                 disp("Disk nije u kontaktu za zidom");
+                return;
             end
             
-            if (vreme == inf)
-                vreme = -1; 
+            dodirujeGornji = ((disk.koordinate.y + disk.poluprecnik) >= obj.gornjiZid - obj.dozvoljenaGreska) && ...
+                ((disk.koordinate.y + disk.poluprecnik) <= obj.gornjiZid);
+            dodirujeDonji = ((disk.koordinate.y - disk.poluprecnik) <= obj.donjiZid + obj.dozvoljenaGreska) && ...
+                ((disk.koordinate.y - disk.poluprecnik) >= obj.donjiZid);
+            dodirujeDesni = ((disk.koordinate.x + disk.poluprecnik) >= obj.desniZid - obj.dozvoljenaGreska) && ...
+                ((disk.koordinate.x + disk.poluprecnik) <= obj.desniZid);
+            dodirujeLevi = ((disk.koordinate.x - disk.poluprecnik) <= obj.leviZid + obj.dozvoljenaGreska) && ...
+                ((disk.koordinate.x - disk.poluprecnik) >= obj.leviZid);
+            
+            if (dodirujeGornji && disk.brzina.Vy > 0)
+                impuls = impuls + abs(disk.brzina.Vy) * disk.masa;
+            end
+            if (dodirujeDonji && disk.brzina.Vy < 0)
+                impuls = impuls + abs(disk.brzina.Vy) * disk.masa;
+            end
+            if (dodirujeDesni && disk.brzina.Vx > 0)
+                impuls = impuls + abs(disk.brzina.Vx) * disk.masa;
+            end
+            if (dodirujeLevi && disk.brzina.Vx < 0)
+                impuls = impuls + abs(disk.brzina.Vx) * disk.masa;
             end
         end
     end
