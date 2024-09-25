@@ -6,7 +6,7 @@ function plotSimulacijaResults()
     % у зависности од броја дискова, искључујући резултате од Марков ланца.
 
     %% 1. Учитавање броја дискова из MAT фајла
-    matData = load('simulacija_lowR_lotsD_podaci.mat', 'opsegBrojaDiskova');
+    matData = load('simulacija_podaci.mat', 'opsegBrojaDiskova');
     opsegBrojaDiskova = matData.opsegBrojaDiskova;
 
     %% 2. Читање података из CSV фајлова

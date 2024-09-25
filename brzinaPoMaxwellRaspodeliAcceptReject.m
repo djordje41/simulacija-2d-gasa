@@ -4,9 +4,9 @@ function brzine = brzinaPoMaxwellRaspodeliAcceptReject(brojBrzina, masa, tempera
 %koristeci accept/reject metodu.
     kB = 1.380649e-23; %Boltzmann-ova konstanta
 
-    sigma = sqrt(kB * temperatura / masa);
+    sigma = sqrt((4 - pi)/2) * sqrt(kB * temperatura / masa);
     
-    najverovatnijaBrzina = sqrt(2 * kB * temperatura / masa);
+    najverovatnijaBrzina = sqrt(kB * temperatura / masa);
 
     maksimalnaVrednostRaspodele = maxellVrednostRaspodele(masa, temperatura, najverovatnijaBrzina);
     
@@ -16,7 +16,7 @@ function brzine = brzinaPoMaxwellRaspodeliAcceptReject(brojBrzina, masa, tempera
         generisanaBrzina = -1;
         
         while generisanaBrzina == -1
-            generisanaBrzina = rand * 5 * sigma;
+            generisanaBrzina = rand * 6 * sigma;
             accept = rand * maksimalnaVrednostRaspodele;
             
             if (accept < maxellVrednostRaspodele(masa, temperatura, generisanaBrzina))

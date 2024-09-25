@@ -4,5 +4,6 @@ function vrednost = maxellVrednostRaspodele(masa, temperatura, brzina)
     kB = 1.380649e-23; % Boltzmann-ova konstanta
 
     % Izracunavanje vrednosti raspodele
-    vrednost = masa * brzina / (kB * temperatura) * exp(-(masa * brzina^2) / (2 * kB * temperatura));
+    vrednost = 4 * pi * (masa / (2 * pi * kB * temperatura))^(3/2) * ...
+        brzina^2 * exp(-(masa * brzina^2) / (2 * kB * temperatura));
 end

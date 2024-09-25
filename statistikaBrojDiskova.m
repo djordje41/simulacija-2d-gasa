@@ -13,8 +13,8 @@ function statistikaBrojDiskova(posuda)
     markovBrojPokusaja = 100;
 
     brojIteracija = 10;
-    opsegBrojaDiskova = [30, 40, 50, 60, 70, 80, 90, 100, 125, 150]; % Adjust as needed
-    poluprecnikDiska = 1.04e-13;
+    opsegBrojaDiskova = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]; % Adjust as needed
+    poluprecnikDiska = 3.1e-11; % Poluprecnik atoma helijuma
 
     % Inicijalizacija matrica za cuvanje rezultata
     vremeSimBoltzmann = zeros(length(opsegBrojaDiskova), 1);
