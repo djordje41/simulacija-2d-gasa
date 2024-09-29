@@ -12,7 +12,7 @@ brojDiskova = 100;
 bolzmannBrojPokusaja = 100;
 
 newtonVremeSimulacije = 5000;
-newtonBrojDogadjaja = 100;
+newtonBrojDogadjaja = 1000;
 
 % Ako zelite da se preskoci statistika (traje mnogo) ovo ostaje true
 preskociStatistiku = false;
@@ -41,7 +41,7 @@ disp('----------------------------------');
 simulatorNewtonoveMehanike = SimulatorNewtonoveMehanike(posuda);
 
 disp('Rezultati Newtonove metode:');
-simulatorNewtonoveMehanike.simuliraj(poluprecnikDiska, m, newtonVremeSimulacije, newtonBrojDogadjaja, false);
+simulatorNewtonoveMehanike.simuliraj(poluprecnikDiska, m, newtonVremeSimulacije, newtonBrojDogadjaja, false, true);
 
 disp('----------------------------------');
 

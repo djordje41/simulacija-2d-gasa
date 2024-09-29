@@ -98,7 +98,7 @@ function statistikaBrojDiskova(posuda)
         'vremeSimMarkov', 'brojStanjaMarkov');
 
     % Plotovanje rezultata
-    figure('Position', [200, 200, 800, 450]);
+    figure('Position', [200, 200, 850, 500]);
     hold on;
 
     plot(opsegBrojaDiskova, prosekStanjaPoVremenuBoltzmann, '-o', 'DisplayName', 'Direct sampling', 'Marker', 'o');
@@ -107,8 +107,8 @@ function statistikaBrojDiskova(posuda)
     plot(opsegBrojaDiskova, prosekStanjaPoVremenuMarkov, '-d', 'DisplayName', 'Markov chain', 'Marker', 'd');
 
     xlabel('Broj diskova');
-    ylabel('Prosečan broj generisanih validnih stanja po vremenu');
-    title('Zavisnost prosečnog broja generisanih validnih stanja od broja diskova');
+    ylabel('Prosečan broj generisanih validnih stanja po sekundi [s^{-1}]');
+    title('Zavisnost prosečnog broja generisanih validnih stanja po sekundi od broja diskova');
     legend show;
     grid on;
     hold off;

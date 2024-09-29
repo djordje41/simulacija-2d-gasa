@@ -128,8 +128,8 @@ function statistikaPoluprecnikDiska(posuda)
     plot(opsegPoluprecnikaDiskova, prosekStanjaPoVremenuMarkov, '-d', 'DisplayName', 'Markov chain', 'Marker', 'd');
 
     xlabel('Poluprečnik diska (m)');
-    ylabel('Prosečan broj generisanih validnih stanja po vremenu');
-    title('Zavisnost prosečnog broja generisanih validnih stanja od poluprečnika diska');
+    ylabel('Prosečan broj generisanih validnih stanja po sekundi [s^{-1}]');
+    title('Zavisnost prosečnog broja generisanih validnih stanja po sekundi od poluprečnika diska');
     legend show;
     grid on;
     hold off;

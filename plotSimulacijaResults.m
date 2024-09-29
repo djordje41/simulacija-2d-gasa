@@ -33,8 +33,8 @@ function plotSimulacijaResults()
 
     %% 4. Прилагођавање графикона
     xlabel('Broj diskova');
-    ylabel('Prosečan broj generisanih validnih stanja po jedinici vremena');
-    title('Zavisnost prosečnog broja generisanih validnih stanja od broja diskova');
+    ylabel('Prosečan broj generisanih validnih stanja po sekundi [s^{-1}]');
+    title('Zavisnost prosečnog broja generisanih validnih stanja po sekundi od broja diskova');
     legend('Location', 'best');
     grid on;
     hold off;

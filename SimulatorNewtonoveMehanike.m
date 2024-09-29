@@ -38,9 +38,11 @@ classdef SimulatorNewtonoveMehanike
             rezultantneKoordinate(2 : end, 1 : 2) = koordinate;
             
             for i = 1 : brojKoordinata
-                V = maxwellBoltzmannBrzina(masaDiska, 300, 1);
+                V = brzinaPoMaxwellRaspodeliAcceptReject(1, masaDiska, 300);
                 
-                diskovi(i) = Disk(poluprecnikDiska, masaDiska, Brzina(V(1), V(2)), ...
+                theta = 2 * pi * rand();
+                
+                diskovi(i) = Disk(poluprecnikDiska, masaDiska, Brzina(V * cos(theta), V * sin(theta)), ...
                     Koordinate(koordinate(i, 1), koordinate(i, 2)));
             end
             
